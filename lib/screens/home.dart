@@ -1,16 +1,25 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_testing_flutter/data/data.dart';
+import 'package:firebase_testing_flutter/model/message.dart';
 import 'package:firebase_testing_flutter/model/news.dart';
 import 'package:firebase_testing_flutter/screens/detail.dart';
 import 'package:firebase_testing_flutter/service/firebase.dart';
 import 'package:flutter/material.dart';
 
-class Home extends StatelessWidget {
+class Home extends StatefulWidget {
   static String routeName = "/home";
   Home({
     Key key,
   }) : super(key: key);
 
+  @override
+  _HomeState createState() => _HomeState();
+}
+
+class _HomeState extends State<Home> {
   final API api = API();
+  final List<Message> messages = [];
+  @override
   @override
   Widget build(BuildContext context) {
     return Scaffold(
