@@ -17,6 +17,10 @@ class API {
     _auth.signInAnonymously();
   }
 
+  Future<void> uplaodTime(DateTime dateTime) {
+    _db.collection("time").doc().set({"dateTime": dateTime});
+  }
+
   Future<void> signOut() {
     _auth.signOut();
   }
