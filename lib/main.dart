@@ -3,6 +3,7 @@ import 'package:firebase_testing_flutter/routes.dart';
 import 'package:firebase_testing_flutter/screens/wrapper.dart';
 import 'package:firebase_testing_flutter/service/firebase.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
@@ -25,10 +26,21 @@ class _MyAppState extends State<MyApp> {
   String _message = "Genereating Message....";
 
   String _token = "Genertaing Token.... ";
+  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
+
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+    initializePlatformSpecifics() {
+      var initializationSettingsAndroid =
+          AndroidInitializationSettings('app_notf_icon');
+
+      var initializationSettings = InitializationSettings(
+        android: initializationSettingsAndroid,
+      );
+    }
+
     _firebaseMessaging.configure(
       onMessage: (Map<String, dynamic> message) async {
         setState(() {
@@ -60,6 +72,28 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
+  Future<void> showNotification() async {
+    var androidChannelSpecifics = AndroidNotificationDetails(
+      'CHANNEL_ID',
+      'CHANNEL_NAME',
+      "CHANNEL_DESCRIPTION",
+      importance: Importance.max,
+      priority: Priority.high,
+      playSound: true,
+      timeoutAfter: 5000,
+      styleInformation: DefaultStyleInformation(true, true),
+    );
+    var platformChannelSpecifics =
+        NotificationDetails(android: androidChannelSpecifics);
+    await flutterLocalNotificationsPlugin.show(
+      0, // Notification ID
+      'Test Title', // Notification Title
+      'Test Body', // Notification Body, set as null to remove the body
+      platformChannelSpecifics,
+      payload: 'New Payload', // Notification Payload
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return StreamProvider(
@@ -75,6 +109,9 @@ class _MyAppState extends State<MyApp> {
               Text(_token),
               Divider(),
               Text(_message),
+              RaisedButton(onPressed: () {
+                showNotification();
+              })
             ],
           ),
         ),
