@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:overlay_support/overlay_support.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,7 +27,6 @@ class _MyAppState extends State<MyApp> {
   String _message = "Genereating Message....";
 
   String _token = "Genertaing Token.... ";
-  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
 
   @override
   void initState() {
@@ -35,14 +35,28 @@ class _MyAppState extends State<MyApp> {
     initializePlatformSpecifics() {
       var initializationSettingsAndroid =
           AndroidInitializationSettings('app_notf_icon');
-
-      var initializationSettings = InitializationSettings(
-        android: initializationSettingsAndroid,
+      var initializationSettingsIOS = IOSInitializationSettings(
+        requestAlertPermission: true,
+        requestBadgePermission: true,
+        requestSoundPermission: false,
+        onDidReceiveLocalNotification: (id, title, body, payload) async {
+          // your call back to the UI
+        },
       );
+      InitializationSettings initializationSettings = InitializationSettings(
+          android: initializationSettingsAndroid,
+          iOS: initializationSettingsIOS);
     }
 
     _firebaseMessaging.configure(
       onMessage: (Map<String, dynamic> message) async {
+        showSimpleNotification(
+          Container(child: Text(message.toString())),
+          position: NotificationPosition.top,
+          duration: Duration(
+            minutes: 1,
+          ),
+        );
         setState(() {
           _message = message.toString();
         });
@@ -73,6 +87,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> showNotification() async {
+    FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
     var androidChannelSpecifics = AndroidNotificationDetails(
       'CHANNEL_ID',
       'CHANNEL_NAME',
@@ -83,8 +98,12 @@ class _MyAppState extends State<MyApp> {
       timeoutAfter: 5000,
       styleInformation: DefaultStyleInformation(true, true),
     );
-    var platformChannelSpecifics =
-        NotificationDetails(android: androidChannelSpecifics);
+    var iosChannelSpecifics = IOSNotificationDetails(
+      badgeNumber: 0,
+      subtitle: "Hello",
+    );
+    var platformChannelSpecifics = NotificationDetails(
+        android: androidChannelSpecifics, iOS: iosChannelSpecifics);
     await flutterLocalNotificationsPlugin.show(
       0, // Notification ID
       'Test Title', // Notification Title
@@ -98,21 +117,24 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return StreamProvider(
       create: (context) => api.streamingAuthState(context),
-      child: MaterialApp(
-        title: "News App",
-        debugShowCheckedModeBanner: false,
-        routes: routes,
-        themeMode: ThemeMode.dark,
-        home: Scaffold(
-          body: Column(
-            children: [
-              Text(_token),
-              Divider(),
-              Text(_message),
-              RaisedButton(onPressed: () {
-                showNotification();
-              })
-            ],
+      child: OverlaySupport(
+        child: MaterialApp(
+          title: "News App",
+          debugShowCheckedModeBanner: false,
+          routes: routes,
+          themeMode: ThemeMode.dark,
+          home: Scaffold(
+            body: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(_token),
+                Divider(),
+                Text(_message),
+                RaisedButton(onPressed: () {
+                  showNotification();
+                })
+              ],
+            ),
           ),
         ),
       ),
