@@ -19,6 +19,10 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   FirebaseMessaging messaging = FirebaseMessaging.instance;
+
+  String _message = "Genereating Message....";
+
+  String _token = "Genertaing Token.... ";
   @override
   void initState() {
     super.initState();
@@ -30,6 +34,16 @@ class _MyAppState extends State<MyApp> {
 
       if (message.notification != null) {
         print('Message also contained a notification: ${message.notification}');
+        showSimpleNotification(
+          Container(child: Text(message.toString())),
+          position: NotificationPosition.top,
+          duration: Duration(
+            minutes: 1,
+          ),
+        );
+        setState(() {
+          _message = message.toString();
+        });
       }
     });
   }
@@ -49,12 +63,26 @@ class _MyAppState extends State<MyApp> {
     });
     return StreamProvider(
       create: (context) => api.streamingAuthState(context),
-      child: MaterialApp(
-        title: "News App",
-        debugShowCheckedModeBanner: false,
-        routes: routes,
-        themeMode: ThemeMode.dark,
-        home: Wrapper(),
+      child: OverlaySupport(
+        child: MaterialApp(
+          title: "News App",
+          debugShowCheckedModeBanner: false,
+          routes: routes,
+          themeMode: ThemeMode.dark,
+          home: Scaffold(
+            body: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(_token),
+                Divider(),
+                Text(_message),
+                RaisedButton(onPressed: () {
+                  // showNotification();
+                })
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
